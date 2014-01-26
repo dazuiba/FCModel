@@ -25,8 +25,8 @@
     [self.collectionView registerNib:cellNib forCellWithReuseIdentifier:@"PersonCell"];
     
     [self reloadPeople:nil];
-    [NSNotificationCenter.defaultCenter addObserver:self selector:@selector(reloadPeople:) name:FCModelInsertNotification object:Person.class];
-    [NSNotificationCenter.defaultCenter addObserver:self selector:@selector(reloadPeople:) name:FCModelDeleteNotification object:Person.class];
+//    [NSNotificationCenter.defaultCenter addObserver:self selector:@selector(reloadPeople:) name:FCModelInsertNotification object:Person.class];
+//    [NSNotificationCenter.defaultCenter addObserver:self selector:@selector(reloadPeople:) name:FCModelDeleteNotification object:Person.class];
 }
 
 - (void)reloadPeople:(NSNotification *)notification
@@ -38,8 +38,8 @@
 
 - (void)dealloc
 {
-    [NSNotificationCenter.defaultCenter removeObserver:self name:FCModelInsertNotification object:Person.class];
-    [NSNotificationCenter.defaultCenter removeObserver:self name:FCModelDeleteNotification object:Person.class];
+//    [NSNotificationCenter.defaultCenter removeObserver:self name:FCModelInsertNotification object:Person.class];
+//    [NSNotificationCenter.defaultCenter removeObserver:self name:FCModelDeleteNotification object:Person.class];
 }
 
 #pragma mark - UITextFieldDelegate

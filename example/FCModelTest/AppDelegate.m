@@ -16,61 +16,9 @@
 
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
 {
-    NSString *dbPath = [[NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES) objectAtIndex:0] stringByAppendingPathComponent:@"testDB.sqlite3"];
-    NSLog(@"DB path: %@", dbPath);
 
-    // New DB on every launch for testing (comment out for persistence testing)
-    [NSFileManager.defaultManager removeItemAtPath:dbPath error:NULL];
-    
-    [FCModel openDatabaseAtPath:dbPath withSchemaBuilder:^(FMDatabase *db, int *schemaVersion) {
-        [db setCrashOnErrors:YES];
-        db.traceExecution = YES; // Log every query (useful to learn what FCModel is doing or analyze performance)
-        [db beginTransaction];
+    if (false) {
         
-        void (^failedAt)(int statement) = ^(int statement){
-            int lastErrorCode = db.lastErrorCode;
-            NSString *lastErrorMessage = db.lastErrorMessage;
-            [db rollback];
-            NSAssert3(0, @"Migration statement %d failed, code %d: %@", statement, lastErrorCode, lastErrorMessage);
-        };
-
-        if (*schemaVersion < 1) {
-            if (! [db executeUpdate:
-                @"CREATE TABLE Person ("
-                @"    id           INTEGER PRIMARY KEY AUTOINCREMENT," // Autoincrement is optional. Just demonstrating that it works.
-                @"    name         TEXT NOT NULL DEFAULT '',"
-                @"    colorName    TEXT NOT NULL,"
-                @"    taps         INTEGER NOT NULL DEFAULT 0,"
-                @"    createdTime  INTEGER NOT NULL,"
-                @"    modifiedTime INTEGER NOT NULL"
-                @");"
-            ]) failedAt(1);
-            if (! [db executeUpdate:@"CREATE UNIQUE INDEX IF NOT EXISTS name ON Person (name);"]) failedAt(2);
-
-            if (! [db executeUpdate:
-                @"CREATE TABLE Color ("
-                @"    name         TEXT NOT NULL PRIMARY KEY,"
-                @"    hex          TEXT NOT NULL"
-                @");"
-            ]) failedAt(3);
-
-            // Create any other tables...
-            
-            *schemaVersion = 1;
-        }
-
-        // If you wanted to change the schema in a later app version, you'd add something like this here:
-        /*
-        if (*schemaVersion < 2) {
-            if (! [db executeUpdate:@"ALTER TABLE Person ADD COLUMN lastModified INTEGER NULL"]) failedAt(3);
-            *schemaVersion = 2;
-        }
-        */
-
-        [db commit];
-    }];
-    
-
     Color *testUniqueRed0 = [Color instanceWithPrimaryKey:@"red"];
 
     // Prepopulate the Color table
@@ -95,8 +43,8 @@
     NSArray *allColors = [Color allInstances];
     Color *testUniqueRed2 = [Color instanceWithPrimaryKey:@"red"];
     
-    NSAssert(testUniqueRed0 == testUniqueRed1, @"Instance-uniqueness check 1 failed");
-    NSAssert(testUniqueRed1 == testUniqueRed2, @"Instance-uniqueness check 2 failed");
+//    NSAssert(testUniqueRed0 == testUniqueRed1, @"Instance-uniqueness check 1 failed");
+//    NSAssert(testUniqueRed1 == testUniqueRed2, @"Instance-uniqueness check 2 failed");
 
 
     // Comment/uncomment this to see caching/retention behavior.
@@ -124,7 +72,8 @@
         
         if ([p save]) numPeople++;
     }
-    
+    }
+
     self.window = [[UIWindow alloc] initWithFrame:[[UIScreen mainScreen] bounds]];
     self.window.rootViewController = [[ViewController alloc] init];
     [self.window makeKeyAndVisible];

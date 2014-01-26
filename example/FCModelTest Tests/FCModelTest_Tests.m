@@ -8,8 +8,17 @@
 
 #import <XCTest/XCTest.h>
 #import "FCModel.h"
+#import "FCModel+Subclass.h"
 #import "FCModel+Testing.h"
-#import "SimpleModel.h"
+#import "Person.h"
+
+@interface SimpleModel : FCModel
+@property (nonatomic, copy) NSString *uniqueID;
+@property (nonatomic, copy) NSString *name;
+@end
+
+@implementation SimpleModel
+@end
 
 @interface FCModelTest_Tests : XCTestCase
 
@@ -20,8 +29,10 @@
 - (void)setUp
 {
     [super setUp];
-    [NSFileManager.defaultManager removeItemAtPath:[self dbPath] error:NULL];
+    [[NSFileManager defaultManager] removeItemAtPath:self.dbPath error:nil];
     [self openDatabase];
+    
+    assert([Person database] == nil);
 }
 
 - (void)tearDown
@@ -40,22 +51,23 @@
 
     SimpleModel *entity2 = [SimpleModel instanceWithPrimaryKey:@"a"];
     XCTAssertTrue(entity2.existsInDatabase);
-    XCTAssertEqual(entity2.name, entity1.name);
+    XCTAssertTrue([entity1.name isEqualToString:entity2.name]);
 }
 
 - (void)testEntityUniquing
 {
     SimpleModel *entity1 = [SimpleModel instanceWithPrimaryKey:@"a"];
+    entity1.name = [NSString stringWithFormat:@"%f",CFAbsoluteTimeGetCurrent()];
     [entity1 save];
     
     SimpleModel *entity2 = [SimpleModel instanceWithPrimaryKey:@"a"];
-    XCTAssertTrue(entity2 == entity1);
+    XCTAssertTrue([entity2.name isEqualToString:entity1.name], @"%@ == %@",entity1.name,entity2.name);
 }
 
 - (void)testDatabaseCloseFlushesCache
 {
     SimpleModel *entity1 = [SimpleModel instanceWithPrimaryKey:@"a"];
-    entity1.name = @"Alice";
+    entity1.name = @"Alice222";
     [entity1 save];
     
     [self closeDatabase];
@@ -63,15 +75,17 @@
     
     SimpleModel *entity2 = [SimpleModel instanceWithPrimaryKey:@"a"];
     XCTAssertTrue(entity2.existsInDatabase);
-    XCTAssertTrue(entity2 != entity1);
+    XCTAssertTrue([entity2.name isEqualToString:entity1.name]);
 }
 
 #pragma mark - Helper methods
 
 - (void)openDatabase
 {
-    [FCModel openDatabaseAtPath:[self dbPath] withSchemaBuilder:^(FMDatabase *db, int *schemaVersion) {
+
+    FCDefaultDatabase *database = [FCDefaultDatabase open:[self dbPath] builder:^(FMDatabase *db, int *schemaVersion) {
         [db setCrashOnErrors:YES];
+        db.traceExecution = YES;
         [db beginTransaction];
         
         void (^failedAt)(int statement) = ^(int statement){
@@ -92,11 +106,13 @@
         }
         [db commit];
     }];
+    
+    [SimpleModel setDatabase:database];
 }
 
 - (void)closeDatabase
 {
-    [FCModel closeDatabase];
+//    [FCModel closeDatabase];
 }
 
 - (NSString *)dbPath

@@ -7,6 +7,7 @@
 //
 
 #import "Person.h"
+#import "FCModel+Subclass.h" 
 
 @implementation Person
 

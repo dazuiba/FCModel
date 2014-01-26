@@ -22,4 +22,4 @@
 // non-columns:
 @property (nonatomic) Color *color;
 
-@end
+@end 
